@@ -1,0 +1,36 @@
+from fastapi import(
+    APIRouter,
+    Depends
+)
+
+from schemas.chat import(
+    ChatRequest,
+    ChatResponse
+)
+
+from  services.chat_service import ChatService
+
+router = APIRouter(
+
+    prefix="/chat",
+    tags=["Chat"]
+)
+
+chat_service = ChatService()
+
+@router.post(
+    "/",
+    response_model=ChatResponse
+)
+
+def chat(
+    request: ChatRequest
+):
+
+    """
+    ask  the question and answer from the document.
+    """
+    return chat_service.chat(
+        question=request.question,
+        document_id=request.document_id
+    )
