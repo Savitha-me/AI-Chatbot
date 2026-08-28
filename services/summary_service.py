@@ -1,0 +1,76 @@
+from sqlalchemy.orm import Session
+from database.models import Document
+from AI.parser import DocumentParser
+from AI.prompt import PromptBuilder
+from AI.llm import GeminiLLM
+
+
+class SummaryService:
+    """
+    Handles document summarization.
+    """
+
+    @staticmethod
+    def generate_summary(
+        db: Session,
+        document_id: int
+    ) -> dict:
+        """
+        Generate an AI summary for a document.
+        """
+
+        # ----------------------------------------
+        # Find document
+        # ----------------------------------------
+
+        document = (
+            db.query(Document)
+            .filter(Document.id == document_id)
+            .first()
+        )
+
+        if not document:
+            raise ValueError(
+                "Document not found."
+            )
+
+        # ----------------------------------------
+        # Extract document text
+        # ----------------------------------------
+
+        document_text = DocumentParser.extract_text(
+            document.file_path
+        )
+
+        if not document_text.strip():
+            raise ValueError(
+                "No text could be extracted from the document."
+            )
+
+        # ----------------------------------------
+        # Build summary prompt
+        # ----------------------------------------
+
+        prompt = PromptBuilder.build_summary_prompt(
+            document_text=document_text
+        )
+
+        # ----------------------------------------
+        # Generate summary using Gemini
+        # ----------------------------------------
+
+        llm = GeminiLLM()
+
+        summary = llm.generate_response(
+            prompt
+        )
+
+        # ----------------------------------------
+        # Return result
+        # ----------------------------------------
+
+        return {
+            "document_id": document.id,
+            "filename": document.original_filename,
+            "summary": summary
+        }
