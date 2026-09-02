@@ -1,0 +1,229 @@
+ALLOWED FILE FORMATS:
+ pdf,docx,txt
+
+@classmethod - it uses the self or cls method and by using the self or class method we need to create an object and call
+             and then only we can able to call it. The self and class works for different process eg: let us consider a company
+             the company has the employees and the company informations the self calls the employees and the cls calls the company information
+@statismethod - it doesnot uses the cls or self and it acts like a helper function and without creating an object
+                we can call them directly  
+
+
+IF WE USE THE INIT FUNCTION THEN INSIDE THE PARANTHESIS NEED TO USE THE SELF KEYWORD
+UUID:
+  it is used to create the new unique id for all the files
+
+for database connection we need to use the postgresSQL, Pgadmin, Qdrant
+
+POSTGRES:
+ it is used to store the user details, user uploaded documents, chat history and the summary 
+
+PGADMIN:
+ it is used for retrieving and viewing the table without writing the queries in the SQL for viewing the tables
+
+QDRANT:
+ it is used for storing the embedded documents texts, and the vector search index
+ 
+and in the .env file we need to give the postgres and qdrant and no need to add the pgadmin in .env file
+
+DATABASE FOLDER:
+
+1.postgres.py
+   this file contains the code to connect the fatsapi to the postgres
+
+2.qdrant.py
+   this file conatins the code to connect the postgres to the qdrant
+
+3.models.py
+   this file contains the whole database structure and the columns
+---> in this folder we have used the relationship() in this file to shows the one to many relationship 
+    that is one user can upload many documents for connecting all these files we have used the relationship()
+
+1.POSTGRES.PY:
+This file is responsible for:
+
+Reading database credentials
+Creating the SQLAlchemy Engine
+Creating Sessions
+Connecting FastAPI to PostgreSQL
+
+---> while creating the postgres connection string in the .env file we need not to give the symbol @ in the password because the 
+symbol @ is a special characters in the postgres so it throws an error
+
+2.QDRANT.PY:
+ This file stores all the document by embedding it and it helps to retireve the requirements based on index 
+
+LIBRARIES:
+ from sqlalchemy.sql la erunthu func import panrom
+ from sqlalchemy.orm la erunthu relationship import pnarom - for creating one to many relationships 
+ if we need the Column, Integer, String, DateTime need to import all that directly from the sqlalchemy
+
+FILE_UTILS.PY:
+  This file contains the full details about the document
+    1.gets the file extension
+    2.check the file extension was valid if not raise error
+    3.then create a unique name for every file
+    4.store all the files
+    5.then delete the user uploaded file and use the file was stored by ai in above steps
+
+DATABASE:
+  while connecting with the db we cannot directly connect the database with API(eg:we cannot directly write the query about the database in the fatsapi code)
+
+PARSER.PY:
+  It extracts all the texts from the document and return as a string for eg: it shows as extracts the text in the page format and return the whole text combined and in format of string
+used library in this was pymupdf
+
+pymupdf - for reading the pdf files
+python-docx - is for reading the word documnt files
+
+for chunking we are using the library called langchain text splitter 
+
+Chunker.py:
+  this file is for chunking the text after the chunking process we need to overlap the text. The overlap is important because without overlapping the connectivity between the chunks was lost
+  CHUNK SIZES:
+    1.Small Faq Documents : if it is a small document then the chunk size should be 300-500
+    2.working on company policies files - the companu policy file has contents more then the small documents so chunk size is 800-1200
+    3.books - getting the contents from the book then the chunk size is 1000-1500
+    4.Research Papers - getting the contents from the research papers chunk size is 1500-2000
+ the chunk size should not be very high and also should not be very low if the chunk size is very high it doesnot retrieve the contents correctly retrieves the more irrelevant contents and if 
+ the chunk size is very less there is a breakage of sentence so we cannot properly fetch it
+the chunk overlap should be 10per or 20 per from the chunk size if we choose 50per then there is a chance of overlapping the texts
+
+LANGCHAIN TEXT SPLITTER:
+   Langchain text splitter is used in our project because it has well tested text splitters so there is no need of creating the new chunking algorithm is not necessary
+
+EMBEDDINGS.PY:
+   Embeddings.py file is used for embedding the text from human langugae to system understandable language  
+
+for embedding use the sentence transformer - library and the model used was BAAI/bge-base-en-v1.5
+
+Vectorstore:
+   the responsibility of vector store is insert, search and delete
+   it is used for storing the chunks, embedding and the metadata while the postgres file stores the user inout details such as name,email,phonenumber,gender,dob etc...
+
+  for vector store we are using the qdrantclient library
+UUID - universall unique identifier
+
+RETRIEVAL.PY:
+  In this file it gets the input embed the text and then search the top 5 elements and by using the prompt engineering the output was shown to the user
+ 
+PROMPT.PY:
+  In this file it accepts the chunks text the chunk text was a raw text and it does not have a full meaningful sentence so by using the prompt engineering 
+we create a full meaningful sentence and send to the user and in the prompt we need to give them you answer should be based on the contents inside the pdf 
+and and should not create the prompt out of the document and need to mention this in prompt if we doesnot mention that then the model doesnot create the
+prompt properly and it gives the prompt in its own way
+
+DEFINITION:
+1.@staticmethod:
+    staticmethod na there is no need of use the object(self) in the function and also no need of use the class(cls) inside the function and it works as a
+utility/helper function and can able to call it without creating an object and can directly call as classname.method() and it is used for validation,
+calculation, conversion and helper functions
+
+2.@classmethod:
+   classmethod doesnot use the object(self) and class(cls) was used and by using the class we can directly access the information belong to the class
+and can directly use the variables and the configurations that was belong to the class and we can directly call the function using the class name
+
+LLM.PY:
+  this file gets the input from the prompt file and send to the user as their question output for this we need to use the api key and the gemini model
+
+ORCHESTARATOR: Orchestrator means everyfile knows only about their functionality and doesnot know about others so orchestrator means it connects everything
+and say that if this process completes then this process needs to start and it tells to file to work like a architecture
+also known as CONDUCTOR
+
+Chat_Service.py:
+   it is used to connect all the files inside the ai folder and tells them to work in the proper format
+     input -> embed -> qdrant -> search top 5 -> chunks -> prompt build -> gemini model ku send pannu -> gemini generates the answer -> send to the user
+
+Utils/Helper.py:
+   In helper file there is a four different functions are used
+    1.clean_text() - it is used to normalize the text which is extracted from the document
+    2.truncate_text() - it is used to reduce the length of the text from big to small
+    3.format_file_size() - it is used for converting the binary file into readable one
+    4.generate_error_message - it is used for giving the error for the particular search
+
+Why helper.py file:
+  it works between the embedded and chunks and if the query retrieves the results it gives the raw text right so that text was given in a correct format
+   and if it gives the long text the long text need to be truncated right so that we are using the helpers.py file
+
+Auth_service.py:
+  it is used to store the login id and password of the user and by using the JWT tokens we can retrieve the particular document and user login and we can access the information
+and we can ask the questions from the document
+@statismethod en use panrom na there is no need of using the self or class method
+
+JWT(Json workload):
+  if a user gives the login id and password for sign in purpose then the user id and password was stored in the db and if the user comes again and enters the user id and password 
+and then the ai recoginized the user by storing their names through the jwt tokens and if the user comes and asks the question about the document then it recoginizes that the 
+particular user by their jwt token and answer for the questions asked by then from the document that was shared by the particular user
+
+Auth_service.py :
+  intha file la ipo oru user varanga na avunga email id and password potu login panranga na the email and password was stored in the db using the jwt tokens and if the user already 
+registeres but avunga maranthutu again register panunaga na it shows something like the email id is already exists and if the password was incorrect it shows like the email od passwword
+is incorrect and the jwt is used for storing the user details by creating the tokens and it hashes the password and stores it
+
+security.py:
+  it is used for hashing the password and check whether the password is correct for existing users and create the JWT tokens and verify the JWT tokens
+
+api/auth.py:
+  it is used for getting the request body from the frontend part and move the request to give the output
+
+summary_service.py:
+   in this file we are using the "Document Parser" because we are not reaidng the pdf directly we are getting the contents from the pdf and then generating the summary based on that
+  why are we not using the qdrant here:
+    we were not getting the contents and dividing into chunks and then convert as a qdrant and retrieving the results
+
+Summary.py:
+  it is a process of creating the summary for the particular single document like if i ask about company notice period then it gives about the short summary about the notice period
+   and give to users and give the result to the user in a short summary
+main.py la summary oda router ah add panrom
+
+Document_service.py:
+ In this file will have a two different processs
+ 1. user upload document -> document_service file -> save the document -> postgres record create aagum -> parser -> chunking -> embedding -> qdrant -> then document status
+  
+ 2.upload the file -> check the filename -> check the filetype -> create the unique name for the file -> save that file -> then store that file in postresql
+     parser - it is used for extracting the text from the document
+     qdrant - it is used for storing the embedded values of the texts
+
+API/Documents.py:
+  in this file it handles four operations that is
+    1.Upload : it receives the human uploaded document and send to the specific related files
+    2.Get All: get all the embedded values from the vectordb which is under the particular documents
+    3.get by ID: get all the embedded documents by its ID 
+    4.Delete: Delete the particular file, parser, qdrant db etc...   
+
+ChatService.py:
+  In this file if the user ask the question then it retieves the relevant chunks according to the question and generate the prompt based on that answer and send the answer to the llm
+workflow : question -> retriever -> prompt builder -> geminillm -> answer
+
+
+
+
+how to run the files from first to check whether any error occurs
+ 1. docker-compose.yml
+        ↓
+2. PostgreSQL + Qdrant
+        ↓
+3. database/
+        ↓
+4. utils/
+        ↓
+5. ai/parser.py
+        ↓
+6. ai/chunker.py
+        ↓
+7. ai/embedding.py
+        ↓
+8. ai/vectorstore.py
+        ↓
+9. ai/retrieval.py
+        ↓
+10. ai/prompt.py
+        ↓
+11. ai/llm.py
+        ↓
+12. services/
+        ↓
+13. api/routes/
+        ↓
+14. main.py
+        ↓
+15. Swagger
