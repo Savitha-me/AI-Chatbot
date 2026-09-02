@@ -1,7 +1,4 @@
-from fastapi import(
-    APIRouter,
-    Depends
-)
+from fastapi import APIRouter
 
 from schemas.chat import(
     ChatRequest,
@@ -28,7 +25,7 @@ def chat(
 ):
 
     """
-    ask  the question and answer from the document.
+    ask  the question and get the answer from the document.
     """
     return chat_service.chat(
         question=request.question,

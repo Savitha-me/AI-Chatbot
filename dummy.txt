@@ -1,77 +1,33 @@
-from sqlalchemy.orm import Session
+services:
 
-from database.models import Document
-from ai.parser import DocumentParser
-from ai.prompt import PromptBuilder
-from ai.llm import GeminiLLM
+  postgres:
+    image: postgres:16
+    container_name: enterprise_postgres
+
+    environment:
+      POSTGRES_DB: enterprise_ai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: new@123
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
 
-class SummaryService:
-    """
-    Handles document summarization.
-    """
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: enterprise_qdrant
 
-    @staticmethod
-    def generate_summary(
-        db: Session,
-        document_id: int
-    ) -> dict:
-        """
-        Generate an AI summary for a document.
-        """
+    ports:
+      - "6333:6333"
+      - "6334:6334"
 
-        # ----------------------------------------
-        # Find document
-        # ----------------------------------------
+    volumes:
+      - qdrant_data:/qdrant/storage
 
-        document = (
-            db.query(Document)
-            .filter(Document.id == document_id)
-            .first()
-        )
 
-        if not document:
-            raise ValueError(
-                "Document not found."
-            )
-
-        # ----------------------------------------
-        # Extract document text
-        # ----------------------------------------
-
-        document_text = DocumentParser.extract_text(
-            document.file_path
-        )
-
-        if not document_text.strip():
-            raise ValueError(
-                "No text could be extracted from the document."
-            )
-
-        # ----------------------------------------
-        # Build summary prompt
-        # ----------------------------------------
-
-        prompt = PromptBuilder.build_summary_prompt(
-            document_text=document_text
-        )
-
-        # ----------------------------------------
-        # Generate summary using Gemini
-        # ----------------------------------------
-
-        llm = GeminiLLM()
-
-        summary = llm.generate_response(
-            prompt
-        )
-
-        # ----------------------------------------
-        # Return result
-        # ----------------------------------------
-
-        return {
-            "document_id": document.id,
-            "filename": document.original_filename,
-            "summary": summary
-        }
+volumes:
+  postgres_data:
+  qdrant_data:
